@@ -8,9 +8,16 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
+    def __str__(self):
+        return self.value
+
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
+
+# Minimum and maximum desired load factors
+MIN_LOAD_FACTOR = 0.2
+MAX_LOAD_FACTOR = 0.7
 
 
 class HashTable:
@@ -29,6 +36,7 @@ class HashTable:
                 f"Error: the specified capacity ({capacity}) is too small -- initializing with minimum capacity of {MIN_CAPACITY}...")
             self.capacity = MIN_CAPACITY
         self.data = [None] * self.capacity
+        self.num_keys = 0
 
     def get_num_slots(self):
         """
@@ -48,7 +56,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return self.num_keys / self.capacity
 
     def fnv1(self, key):
         """
@@ -86,8 +94,24 @@ class HashTable:
 
         Implement this.
         """
+        if self.num_keys / self.capacity > MAX_LOAD_FACTOR:
+            self.resize(self.capacity * 2)
+
         index = self.hash_index(key)
-        self.data[index] = value
+        entry = self.data[index]
+        if not entry:
+            self.data[index] = HashTableEntry(key, value)
+        else:
+            previous = None
+            while entry:
+                if entry.key == key:
+                    entry.value = value
+                    return
+                previous, entry = entry, entry.next
+
+            entry = HashTableEntry(key, value)
+            previous.next = entry
+        self.num_keys += 1
 
     def delete(self, key):
         """
@@ -97,11 +121,27 @@ class HashTable:
 
         Implement this.
         """
+        if self.num_keys / self.capacity < MIN_LOAD_FACTOR and self.capacity // 2 >= 8:
+            self.resize(self.capacity // 2)
+
         index = self.hash_index(key)
-        if self.data[index] is None:
-            print("Error: key not found")
+        entry = self.data[index]
+        if not entry:
+            raise KeyError('Error: key not found!')
         else:
-            self.data[index] = None
+            previous = None
+            while entry:
+                if entry.key == key:
+                    if previous:
+                        entry.value = None
+                        return
+                    else:
+                        entry.value = None
+                        return
+                previous, entry = entry, entry.next
+            raise KeyError('Error: key not found!')
+
+        self.num_keys -= 1
 
     def get(self, key):
         """
@@ -112,7 +152,13 @@ class HashTable:
         Implement this.
         """
         index = self.hash_index(key)
-        return self.data[index]
+        entry = self.data[index]
+        if entry:
+            while entry:
+                if entry.key == key:
+                    return entry.value
+                entry = entry.next
+        return None
 
     def resize(self, new_capacity):
         """
@@ -121,7 +167,12 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        self.capacity = new_capacity
+        old_data, self.data = self.data, [None] * self.capacity
+        for entry in old_data:
+            while entry:
+                self.put(entry.key, entry.value)
+                entry = entry.next
 
 
 if __name__ == "__main__":
