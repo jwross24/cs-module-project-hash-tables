@@ -23,7 +23,7 @@ def slowfun(x, y, mod_result):
     if (x, y) not in mod_result:
         mod_result[(x, y)] = slowfun_too_slow(x, y)
         print(f"Added {len(mod_result)}/36 results so far")
-        sleep(1)
+        sleep(0.3)
 
     return mod_result[(x, y)]
 
