@@ -22,8 +22,13 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        self.capacity = capacity
-        self.data = [None] * capacity
+        if capacity >= MIN_CAPACITY:
+            self.capacity = capacity
+        else:
+            print(
+                f"Error: the specified capacity ({capacity}) is too small -- initializing with minimum capacity of {MIN_CAPACITY}...")
+            self.capacity = MIN_CAPACITY
+        self.data = [None] * self.capacity
 
     def get_num_slots(self):
         """
